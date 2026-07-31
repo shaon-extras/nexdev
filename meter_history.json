@@ -30,10 +30,10 @@
                     "balance_date": "2026-08-01",
                     "balance": -139.46,
                     "usage": 98.41,
-                    "recorded_at": "2026-08-01 00:52:04"
+                    "recorded_at": "2026-08-01 01:37:15"
                 }
             ],
-            "monthly_total": 98.41,
+            "monthly_total": 196.82,
             "last_balance": -139.46,
             "monthly_totals": [
                 {
@@ -54,16 +54,16 @@
                     "balance_date": "2026-08-01",
                     "balance": 291.44,
                     "usage": 116.82,
-                    "recorded_at": "2026-08-01 00:52:04"
+                    "recorded_at": "2026-08-01 01:37:15"
                 }
             ],
-            "monthly_total": 116.82,
+            "monthly_total": 233.64,
             "last_balance": 291.44,
             "monthly_totals": []
         }
     },
     "last_run": {
-        "37003664": "2026-08-01 00:52:04",
-        "37006528": "2026-08-01 00:52:04"
+        "37003664": "2026-08-01 01:37:15",
+        "37006528": "2026-08-01 01:37:15"
     }
 }
