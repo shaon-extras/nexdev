@@ -41,7 +41,7 @@ def get_meter_numbers():
             with open("meters.txt", "r") as f:
                 return [line.strip() for line in f if line.strip()]
         except FileNotFoundError:
-            return ["37005309", "37006814", "37001280", "37009693", "37005104", "37002391"]
+            return ["37006528", "37003664"]
 
 def fetch_nesco_data(cust_no, retries=3):
     headers = {"User-Agent": "Mozilla/5.0"}
