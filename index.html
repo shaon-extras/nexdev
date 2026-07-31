@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexDash</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #121212;
+            color: #eee;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .dashboard-header {
+            text-align: left;
+            margin-bottom: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 10px;
+        }
+        .dashboard-header h1 {
+            color: #4db8ff;
+            font-weight: 600;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        .dashboard-header p {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            transition: transform 0.1s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+        }
+        .meter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .meter-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .meter-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: #4db8ff;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .copy-btn:hover {
+            color: #fff;
+        }
+        .copy-btn:active {
+            transform: scale(0.9);
+        }
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 6px 0;
+        }
+        .balance-positive {
+            color: #2ecc71;
+        }
+        .balance-negative {
+            color: #e74c3c;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #ccc;
+            background: #2a2a2a;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 8px 0 12px 0;
+        }
+        .meta-row span {
+            display: inline-block;
+        }
+        .usage-badge {
+            display: inline-block;
+            background: #ffebee;
+            color: #c62828;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .chart-container {
+            margin-top: 12px;
+            height: 160px;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .no-data {
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px 0;
+        }
+        /* Forecast row: two columns */
+        .forecast-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            background: #1a1a2e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border-left: 3px solid #4db8ff;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .forecast-left, .forecast-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .forecast-label {
+            color: #aaa;
+        }
+        .forecast-value {
+            color: #4db8ff;
+            font-weight: 600;
+        }
+        .total-usage-value {
+            color: #f1c40f;
+            font-weight: 600;
+        }
+
+        /* --- Monthly history row (FIXED for mobile) --- */
+        .monthly-history-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            background: #1a1a2e;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-top: 6px;
+            border-left: 3px solid #f1c40f;
+            flex-shrink: 0;
+            flex-wrap: nowrap;
+            gap: 6px;
+        }
+        .monthly-history-row .monthly-label {
+            color: #aaa;
+            white-space: nowrap;
+        }
+        .monthly-history-row .monthly-usage {
+            color: #f1c40f;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .monthly-history-row .monthly-month {
+            color: #888;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        /* --- Run log footer styles --- */
+        .run-log-footer {
+            max-width: 1400px;
+            margin: 30px auto 0;
+            padding: 16px 20px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #333;
+            font-size: 14px;
+        }
+        .run-log-footer h3 {
+            color: #4db8ff;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+        .run-log-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px 20px;
+        }
+        .run-log-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .run-log-item .status-icon {
+            font-size: 16px;
+        }
+        .run-log-item .meter-name {
+            color: #ccc;
+            font-weight: 500;
+        }
+        .run-log-item .error-msg {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+        .run-log-time {
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .meter-header {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .meter-number {
+                font-size: 16px;
+            }
+            .meter-title {
+                font-size: 18px;
+            }
+            .forecast-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+            .forecast-left, .forecast-right {
+                justify-content: space-between;
+            }
+            .monthly-history-row {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: space-between;
+                gap: 4px;
+                font-size: 12px;
+            }
+            .run-log-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-header">
+        <h1>⚡NexDash</h1>
+        <p>সর্বশেষ আপডেট: <span id="globalUpdateTime">Loading...</span></p>
+    </div>
+
+    <div class="card-grid" id="cardContainer">
+        <!-- Cards injected here -->
+    </div>
+
+    <!-- Run Log Footer -->
+    <div class="run-log-footer" id="runLogFooter">
+        <h3>📋 সর্বশেষ রানের অবস্থা</h3>
+        <div id="runLogContent">
+            <span class="run-log-time">Loading run log...</span>
+        </div>
+    </div>
+
+    <!-- Chart.js v2.9.4 + DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <script>
+        Chart.plugins.register(ChartDataLabels);
+
+        const HISTORY_URL = "meter_history.json";
+        const CONFIG_URL = "meter_config.json";
+        const RUN_LOG_URL = "run_log.json";
+        const CACHE_BUST = '?v=' + new Date().getTime();
+        let allCharts = [];
+
+        // ---------- Helper: shift date by -1 day and return Date object ----------
+        function shiftDateMinusOne(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return null;
+            const d = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+            d.setUTCDate(d.getUTCDate() - 1);
+            return d;
+        }
+
+        // ---------- Helper: format date (1 day backward) for display ----------
+        function formatDateLabel(dateStr) {
+            const d = shiftDateMinusOne(dateStr);
+            if (!d) return '';
+            const month = d.getUTCMonth();
+            const day = d.getUTCDate();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months[month] + ' ' + String(day).padStart(2, '0');
+        }
+
+        // ---------- Helper: format date as YYYY-MM-DD ----------
+        function formatDateYYYYMMDD(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        // ---------- NEW: Format date + time together ----------
+        function formatDateTime(datetimeStr) {
+            if (!datetimeStr) return 'N/A';
+            const parts = datetimeStr.split(' ');
+            if (parts.length < 2) return datetimeStr;
+
+            // Parse date: YYYY-MM-DD
+            const dateParts = parts[0].split('-');
+            if (dateParts.length !== 3) return datetimeStr;
+            const year = dateParts[0];
+            const month = parseInt(dateParts[1], 10);
+            const day = parseInt(dateParts[2], 10);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dateStr = months[month - 1] + ' ' + day + ', ' + year;
+
+            // Parse time: HH:MM:SS
+            const timeParts = parts[1].split(':');
+            if (timeParts.length < 2) return datetimeStr;
+            let hour = parseInt(timeParts[0], 10);
+            const minute = timeParts[1];
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            const timeStr = hour + ':' + minute + ' ' + ampm;
+
+            return dateStr + ' ' + timeStr + ' (BD)';
+        }
+
+        // ---------- Helper: format a month label (YYYY-MM) to display (e.g., "Jul 2026") ----------
+        function formatMonthLabel(monthStr) {
+            if (!monthStr) return '';
+            const parts = monthStr.split('-');
+            if (parts.length !== 2) return monthStr;
+            const year = parts[0];
+            const month = parseInt(parts[1], 10);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months[month - 1] + ' ' + year;
+        }
+
+        // ---------- Helper: calculate average usage from history ----------
+        function calculateAverageUsage(history) {
+            if (!history || history.length === 0) return 0;
+            const count = Math.min(history.length, 7);
+            const last7 = history.slice(-count);
+            const total = last7.reduce((sum, entry) => sum + (entry.usage || 0), 0);
+            return total / count;
+        }
+
+        // ---------- Helper: forecast ----------
+        function getForecast(balance, avgDailyUsage) {
+            if (avgDailyUsage <= 0) {
+                return { daysRemaining: Infinity, daysCeil: 0, endDate: null };
+            }
+            const days = balance / avgDailyUsage;
+            const daysCeil = Math.ceil(days);
+            const today = new Date();
+            const endDate = new Date(today);
+            endDate.setDate(today.getDate() + daysCeil);
+            return { daysRemaining: days, daysCeil: daysCeil, endDate: endDate };
+        }
+
+        // ---------- Copy meter number ----------
+        function copyMeterNumber(meter) {
+            navigator.clipboard.writeText(meter).then(() => {
+                const btn = document.getElementById(`copy-btn-${meter}`);
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '✓';
+                    setTimeout(() => { btn.innerHTML = original; }, 1000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        // ---------- Main dashboard load ----------
+        async function loadDashboard() {
+            try {
+                // Fetch history, config, and run log
+                const [historyRes, configRes, runLogRes] = await Promise.all([
+                    fetch(HISTORY_URL + CACHE_BUST),
+                    fetch(CONFIG_URL + CACHE_BUST).catch(() => ({ ok: false })),
+                    fetch(RUN_LOG_URL + CACHE_BUST).catch(() => ({ ok: false }))
+                ]);
+
+                if (!historyRes.ok) throw new Error("History file not found");
+                const fullData = await historyRes.json();
+
+                let meterNames = {};
+                if (configRes.ok) {
+                    meterNames = await configRes.json();
+                }
+
+                const meterData = fullData.meter_data || {};
+                const lastRun = fullData.last_run || {};
+
+                // Update global header timestamp using new format
+                const allRuns = Object.values(lastRun);
+                if (allRuns.length > 0) {
+                    allRuns.sort((a, b) => new Date(b) - new Date(a));
+                    document.getElementById('globalUpdateTime').innerText = formatDateTime(allRuns[0]);
+                } else {
+                    document.getElementById('globalUpdateTime').innerText = 'No runs yet';
+                }
+
+                // ---------- Run log footer ----------
+                if (runLogRes.ok) {
+                    const runLog = await runLogRes.json();
+                    const runTime = runLog.timestamp ? formatDateTime(runLog.timestamp) : 'Unknown';
+                    const metersStatus = runLog.meters || {};
+
+                    let footerHtml = `<div class="run-log-time">🕒 রান সময়: ${runTime}</div><div class="run-log-grid">`;
+                    const customOrder = ["37005309", "37006814", "37001280", "37009693", "37005104", "37002391"];
+                    const meterKeys = Object.keys(metersStatus).sort((a, b) => customOrder.indexOf(a) - customOrder.indexOf(b));
+
+                    if (meterKeys.length === 0) {
+                        footerHtml += '<span style="color:#888;">কোনো রানের তথ্য নেই</span>';
+                    } else {
+                        for (const meter of meterKeys) {
+                            const status = metersStatus[meter];
+                            const name = meterNames[meter] || meter;
+                            const success = status.success;
+                            const errorMsg = status.error || '';
+                            const icon = success ? '✅' : '❌';
+                            const balance = status.balance_fetched !== null ? ` (৳${status.balance_fetched})` : '';
+                            footerHtml += `
+                                <div class="run-log-item">
+                                    <span class="status-icon">${icon}</span>
+                                    <span class="meter-name">${name}</span>
+                                    <span style="color:#aaa;font-size:12px;">${balance}</span>
+                                    ${errorMsg ? `<span class="error-msg">${errorMsg}</span>` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                    footerHtml += '</div>';
+                    document.getElementById('runLogContent').innerHTML = footerHtml;
+                } else {
+                    document.getElementById('runLogContent').innerHTML = '<span style="color:#888;">Run log not available yet.</span>';
+                }
+
+                // ---------- Render cards ----------
+                const container = document.getElementById('cardContainer');
+                container.innerHTML = '';
+
+                const meterNumbers = Object.keys(meterData);
+                if (meterNumbers.length === 0) {
+                    container.innerHTML = '<div class="card" style="grid-column:1/-1; text-align:center; padding:40px;">⚠️ কোনো মিটার ডেটা পাওয়া যায়নি।</div>';
+                    return;
+                }
+
+                const customOrder = ["37005309", "37006814", "37001280", "37009693", "37005104", "37002391"];
+                meterNumbers.sort((a, b) => customOrder.indexOf(a) - customOrder.indexOf(b));
+
+                meterNumbers.forEach((meter) => {
+                    const meterEntry = meterData[meter];
+                    let history = [];
+                    let monthlyTotal = 0;
+                    let monthlyTotals = [];
+                    if (Array.isArray(meterEntry)) {
+                        // Old format – fallback
+                        history = meterEntry;
+                        monthlyTotal = history.reduce((sum, e) => sum + (e.usage || 0), 0);
+                        monthlyTotals = [];
+                    } else if (meterEntry && typeof meterEntry === 'object') {
+                        history = meterEntry.history || [];
+                        monthlyTotal = meterEntry.monthly_total || 0;
+                        monthlyTotals = meterEntry.monthly_totals || [];
+                    }
+
+                    const displayName = meterNames[meter] || meter;
+                    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+                    const avgUsage = calculateAverageUsage(history);
+                    const latestBalance = lastEntry ? lastEntry.balance : 0;
+                    const latestDate = lastEntry ? formatDateLabel(lastEntry.balance_date) : '--';
+
+                    // --- Previous month usage ---
+                    let prevMonthUsage = 0;
+                    let prevMonthLabel = '';
+                    if (monthlyTotals.length > 0) {
+                        const lastMonth = monthlyTotals[monthlyTotals.length - 1];
+                        prevMonthUsage = lastMonth.usage;
+                        prevMonthLabel = formatMonthLabel(lastMonth.month);
+                    }
+
+                    // Forecast
+                    const forecast = getForecast(latestBalance, avgUsage);
+                    let forecastText = '';
+                    if (avgUsage === 0) {
+                        forecastText = 'গড় খরচ ০, পূর্বাভাস সম্ভব নয়';
+                    } else if (forecast.daysRemaining <= 0) {
+                        forecastText = '⚠️ ব্যালেন্স শেষ!';
+                    } else {
+                        const endDateStr = formatDateLabel(formatDateYYYYMMDD(forecast.endDate));
+                        forecastText = `অবশিষ্ট: ${forecast.daysCeil} দিন (≈ ${endDateStr})`;
+                    }
+
+                    const last7 = history.slice(-7);
+                    const labels = last7.map(d => formatDateLabel(d.balance_date || ''));
+                    const usages = last7.map(d => d.usage || 0);
+
+                    const balanceClass = latestBalance < 0 ? 'balance-negative' : 'balance-positive';
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.id = `card-${meter}`;
+
+                    let monthlyHistoryHtml = '';
+                    if (prevMonthUsage > 0) {
+                        monthlyHistoryHtml = `
+                            <div class="monthly-history-row">
+                                <span class="monthly-label">📆 গত মাসের খরচ:</span>
+                                <span class="monthly-usage">৳ ${prevMonthUsage.toFixed(2)}</span>
+                                <span class="monthly-month">(${prevMonthLabel})</span>
+                            </div>
+                        `;
+                    } else {
+                        monthlyHistoryHtml = `
+                            <div class="monthly-history-row">
+                                <span class="monthly-label">📆 গত মাসের খরচ:</span>
+                                <span class="monthly-usage" style="color:#888;">N/A</span>
+                            </div>
+                        `;
+                    }
+
+                    card.innerHTML = `
+                        <div class="meter-header">
+                            <span class="meter-title">${displayName}</span>
+                            <span class="meter-number">
+                                ${meter}
+                                <button class="copy-btn" id="copy-btn-${meter}" onclick="copyMeterNumber('${meter}')" title="Copy meter number">📋</button>
+                            </span>
+                        </div>
+                        <div class="balance-amount ${balanceClass}">৳ ${latestBalance.toFixed(2)}</div>
+                        <div class="meta-row">
+                            <span>📅 তারিখ: ${latestDate}</span>
+                            <span class="usage-badge">গড় খরচ: ৳ ${avgUsage.toFixed(2)}</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-${meter}"></canvas>
+                        </div>
+                        <div class="forecast-row">
+                            <div class="forecast-left">
+                                <span class="forecast-label">📈 মোট খরচ (মাস)</span>
+                                <span class="total-usage-value">৳ ${monthlyTotal.toFixed(2)}</span>
+                            </div>
+                            <div class="forecast-right">
+                                <span class="forecast-label">🔮 পূর্বাভাস</span>
+                                <span class="forecast-value">${forecastText}</span>
+                            </div>
+                        </div>
+                        ${monthlyHistoryHtml}
+                    `;
+
+                    container.appendChild(card);
+
+                    // Draw chart
+                    const ctx = document.getElementById(`chart-${meter}`).getContext('2d');
+
+                    const chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: usages,
+                                backgroundColor: '#4db8ff',
+                                borderRadius: 4,
+                                barPercentage: 0.6
+                            }]
+                        },
+                        options: {
+                            legend: { display: false },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: { padding: { top: 20 } },
+                            tooltips: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return '৳ ' + tooltipItem.yLabel.toFixed(2);
+                                    }
+                                }
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        maxTicksLimit: 4,
+                                        fontColor: '#ccc',
+                                        fontSize: 9
+                                    },
+                                    gridLines: { color: '#444', display: true }
+                                }],
+                                xAxes: [{
+                                    ticks: {
+                                        fontColor: '#eee',
+                                        fontSize: 10,
+                                        maxRotation: 30,
+                                        minRotation: 0
+                                    },
+                                    gridLines: { display: false }
+                                }]
+                            },
+                            plugins: {
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#eee',
+                                    font: { size: 10, weight: 'bold' },
+                                    formatter: function(value) {
+                                        return '৳' + value.toFixed(1);
+                                    },
+                                    offset: 2
+                                }
+                            }
+                        }
+                    });
+
+                    allCharts.push(chart);
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('cardContainer').innerHTML = `
+                    <div class="card" style="grid-column:1/-1; text-align:center; padding:40px; color:#e74c3c;">
+                        ❌ ডেটা লোড করা যায়নি। <br><small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>
