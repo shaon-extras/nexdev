@@ -42,7 +42,6 @@ def get_meter_numbers():
                 return [line.strip() for line in f if line.strip()]
         except FileNotFoundError:
             return ["37006528", "37003664"]
-
 def fetch_nesco_data(cust_no, retries=3):
     headers = {"User-Agent": "Mozilla/5.0"}
     for attempt in range(retries):
@@ -100,7 +99,7 @@ def main():
                 "history": history,
                 "monthly_total": monthly_total,
                 "last_balance": last_balance,
-                "monthly_totals": []   # <-- new field
+                "monthly_totals": []
             }
             print(f"🔄 Migrated meter {cust_no} to new format")
         elif isinstance(value, dict):
@@ -111,7 +110,7 @@ def main():
             if "last_balance" not in value:
                 value["last_balance"] = 0.0
             if "monthly_totals" not in value:
-                value["monthly_totals"] = []   # <-- ensure this exists
+                value["monthly_totals"] = []
 
     now_bd = datetime.now(BD_TZ)
     now_bd_str = now_bd.strftime("%Y-%m-%d %H:%M:%S")
@@ -146,21 +145,29 @@ def main():
         history = meter["history"]
         monthly_total = meter.get("monthly_total", 0.0)
 
-        # ---- Reset monthly_total on the 1st and store previous month ----
-        if today_bd.day == 1:
-            # Store previous month's total before reset
-            if monthly_total > 0:
-                # Compute previous month label (e.g., "2026-07")
-                first_day_current = today_bd.replace(day=1)
-                prev_month_date = first_day_current - timedelta(days=1)
-                prev_month_label = prev_month_date.strftime("%Y-%m")
-                if "monthly_totals" not in meter:
-                    meter["monthly_totals"] = []
+        # ---- Reset monthly_total on the 1st and store previous month (ONCE) ----
+        if today_bd.day == 2:
+            # Compute previous month label
+            first_day_current = today_bd.replace(day=1)
+            prev_month_date = first_day_current - timedelta(days=1)
+            prev_month_label = prev_month_date.strftime("%Y-%m")
+
+            # Check if we already stored this month
+            already_stored = False
+            for stored in meter.get("monthly_totals", []):
+                if stored.get("month") == prev_month_label:
+                    already_stored = True
+                    break
+
+            if not already_stored and monthly_total > 0:
                 meter["monthly_totals"].append({
                     "month": prev_month_label,
                     "usage": monthly_total
                 })
                 print(f"   📊 Stored previous month ({prev_month_label}) usage: {monthly_total}")
+            elif already_stored:
+                print(f"   ⏭️ Previous month ({prev_month_label}) already stored, skipping")
+
             monthly_total = 0.0
             print(f"   📅 New month – reset monthly_total to 0")
 
@@ -214,11 +221,9 @@ def main():
         }
 
         if existing_idx is not None:
-            # Update existing entry
             history[existing_idx] = new_entry
             print(f"   🔄 Updated existing entry for {web_date}")
         else:
-            # Append new entry
             history.append(new_entry)
             print(f"   ➕ Added new entry for {web_date}")
 
