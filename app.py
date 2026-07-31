@@ -42,6 +42,7 @@ def get_meter_numbers():
                 return [line.strip() for line in f if line.strip()]
         except FileNotFoundError:
             return ["37006528", "37003664"]
+
 def fetch_nesco_data(cust_no, retries=3):
     headers = {"User-Agent": "Mozilla/5.0"}
     for attempt in range(retries):
@@ -145,9 +146,8 @@ def main():
         history = meter["history"]
         monthly_total = meter.get("monthly_total", 0.0)
 
-        # ---- Reset monthly_total on the 1st and store previous month (ONCE) ----
+        # ---- Reset monthly_total on the 2nd (ONLY ONCE!) ----
         if today_bd.day == 2:
-            # Compute previous month label
             first_day_current = today_bd.replace(day=1)
             prev_month_date = first_day_current - timedelta(days=1)
             prev_month_label = prev_month_date.strftime("%Y-%m")
@@ -159,17 +159,19 @@ def main():
                     already_stored = True
                     break
 
-            if not already_stored and monthly_total > 0:
-                meter["monthly_totals"].append({
-                    "month": prev_month_label,
-                    "usage": monthly_total
-                })
-                print(f"   📊 Stored previous month ({prev_month_label}) usage: {monthly_total}")
-            elif already_stored:
-                print(f"   ⏭️ Previous month ({prev_month_label}) already stored, skipping")
-
-            monthly_total = 0.0
-            print(f"   📅 New month – reset monthly_total to 0")
+            if not already_stored:
+                # First run on the 2nd → store previous month and reset
+                if monthly_total > 0:
+                    meter["monthly_totals"].append({
+                        "month": prev_month_label,
+                        "usage": monthly_total
+                    })
+                    print(f"   📊 Stored previous month ({prev_month_label}) usage: {monthly_total}")
+                monthly_total = 0.0
+                print(f"   📅 New month – reset monthly_total to 0")
+            else:
+                # Already reset earlier today → skip
+                print(f"   ⏭️ Reset already done for {prev_month_label}, skipping")
 
         current_data = fetch_nesco_data(cust_no)
 
@@ -188,7 +190,7 @@ def main():
         web_date = current_data["date"]
         print(f"   📅 Scraped Date: {web_date}, Balance: {web_balance}")
 
-        # ---- Calculate usage (based on previous entry, not today) ----
+        # ---- Calculate usage (based on previous entry with different date) ----
         prev_entry = None
         for entry in reversed(history):
             if entry["balance_date"] != web_date:
@@ -204,7 +206,7 @@ def main():
         else:
             usage = 0.0
 
-        monthly_total += usage
+        print(f"   📊 Calculated usage: {usage}")
 
         # ---- Check if today's entry already exists ----
         existing_idx = None
@@ -221,9 +223,14 @@ def main():
         }
 
         if existing_idx is not None:
+            # ---- Update existing entry (DO NOT add usage again) ----
+            old_usage = history[existing_idx]["usage"]
+            monthly_total = monthly_total - old_usage + usage
             history[existing_idx] = new_entry
-            print(f"   🔄 Updated existing entry for {web_date}")
+            print(f"   🔄 Updated existing entry for {web_date} (usage: {old_usage} → {usage})")
         else:
+            # ---- Add new entry ----
+            monthly_total += usage
             history.append(new_entry)
             print(f"   ➕ Added new entry for {web_date}")
 
@@ -244,7 +251,7 @@ def main():
             "balance_changed": (usage != 0.0)
         }
 
-        print(f"   ✅ Usage: {usage} | Monthly total: {monthly_total}")
+        print(f"   ✅ Monthly total: {monthly_total}")
 
     # ---- Save ----
     full_db["meter_data"] = meter_data
