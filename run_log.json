@@ -1,16 +1,16 @@
 {
-    "timestamp": "2026-08-12 05:23:24",
+    "timestamp": "2026-08-13 05:22:53",
     "meters": {
         "37006528": {
             "success": true,
             "error": null,
-            "balance_fetched": 582.19,
+            "balance_fetched": 505.24,
             "balance_changed": true
         },
         "37003664": {
             "success": true,
             "error": null,
-            "balance_fetched": 1207.82,
+            "balance_fetched": 1122.23,
             "balance_changed": true
         }
     }
