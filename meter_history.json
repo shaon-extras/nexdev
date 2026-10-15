@@ -3,12 +3,6 @@
         "37003664": {
             "history": [
                 {
-                    "balance_date": "2026-10-09",
-                    "balance": -314.11,
-                    "usage": 30.42,
-                    "recorded_at": "2026-10-09 13:04:13"
-                },
-                {
                     "balance_date": "2026-10-10",
                     "balance": -371.31,
                     "usage": 57.2,
@@ -43,10 +37,16 @@
                     "balance": 1141.74,
                     "usage": 22.44,
                     "recorded_at": "2026-10-15 11:27:58"
+                },
+                {
+                    "balance_date": "2026-10-16",
+                    "balance": 1084.9,
+                    "usage": 56.84,
+                    "recorded_at": "2026-10-16 05:38:00"
                 }
             ],
-            "monthly_total": 624.44,
-            "last_balance": 1141.74,
+            "monthly_total": 681.2800000000001,
+            "last_balance": 1084.9,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -64,12 +64,6 @@
         },
         "37006528": {
             "history": [
-                {
-                    "balance_date": "2026-10-09",
-                    "balance": 441.52,
-                    "usage": 49.49,
-                    "recorded_at": "2026-10-09 13:04:13"
-                },
                 {
                     "balance_date": "2026-10-10",
                     "balance": 389.83,
@@ -105,10 +99,16 @@
                     "balance": 398.43,
                     "usage": 66.72,
                     "recorded_at": "2026-10-15 11:27:58"
+                },
+                {
+                    "balance_date": "2026-10-16",
+                    "balance": 346.42,
+                    "usage": 52.01,
+                    "recorded_at": "2026-10-16 05:38:00"
                 }
             ],
-            "monthly_total": 530.92,
-            "last_balance": 398.43,
+            "monthly_total": 582.93,
+            "last_balance": 346.42,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -126,7 +126,7 @@
         }
     },
     "last_run": {
-        "37003664": "2026-10-15 11:27:58",
-        "37006528": "2026-10-15 11:27:58"
+        "37003664": "2026-10-16 05:38:00",
+        "37006528": "2026-10-16 05:38:00"
     }
 }
