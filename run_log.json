@@ -1,17 +1,15 @@
 {
-    "timestamp": "2026-11-13 07:44:59",
+    "timestamp": "2026-11-13 13:31:24",
     "meters": {
         "37006528": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 319.96,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         },
         "37003664": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 1085.1,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         }
     }
 }
